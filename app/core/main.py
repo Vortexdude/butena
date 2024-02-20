@@ -1,7 +1,8 @@
 from app.api.router import api_router
 from fastapi import FastAPI
-from motor.motor_asyncio import AsyncIOMotorClient
+from app.core.db import beanie_db
 from beanie import init_beanie
+from app.api.auth.model import User as UserModel
 
 def get_app() -> FastAPI:
     """
@@ -19,16 +20,12 @@ def get_app() -> FastAPI:
         redoc_url="/api/redoc/",
         openapi_url="/api/openapi.json",
     )
-    async def app_init():
-        """initialize the crucial functions"""
-        db_client = AsyncIOMotorClient("mongodb://127.0.0.1:27017/butena").fodoist()
 
+    @app.on_event("startup")
+    async def app_init():
         await init_beanie(
-            database=db_client,
-            document_models= [
-                User,
-                Todo
-            ]
+            database=beanie_db,
+            document_models=[UserModel]
         )
 
     app.include_router(router=api_router, prefix="/api")

@@ -1,7 +1,7 @@
-from fastapi import APIRouter, Depends
-from .schema import UserOut, UserAuth
-from uuid import uuid4
-
+from fastapi import APIRouter
+from .schema import UserCreation
+from .service import UserService
+import pymongo
 router = APIRouter()
 
 
@@ -9,16 +9,13 @@ router = APIRouter()
 async def root():
     return {"User": "Nitin"}
 
+#  response_model=UserOut
+@router.post("/signup", summary="Create New User")
+async def create_user(data: UserCreation):
+    try:
+        return await UserService.create_user(data)
+    except Exception as e:
+        raise Exception(f"Due to some technical issue with the database please wait to start up.. {e}")
 
-@router.post("/signup", summary="Create New User", response_model=UserOut)
-async def create_user(data: UserAuth):
-    user = {
-        'user_id': '6cf304be-0cb3-42ca-b3c7-3d713f7de728',
-        'email': 'nitin@gmail.com',
-        'username': "nnamdev",
-        'password': "dfdf545",
-        'first_name': "nitin",
-        "last_name": "Namdev"
-    }
-    return user
+
 
