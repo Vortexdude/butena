@@ -38,7 +38,7 @@ class UserAuth(BaseModel):
 
 class UserOut(BaseModel):
     user_id: UUID
-    username: str
+    user_name: Optional[str]
     enabled: bool
 
 
