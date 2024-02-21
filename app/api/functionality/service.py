@@ -2,12 +2,13 @@ from git import Repo
 import os
 import shutil
 
+TEMP_DIR = "/tmp/git"
 class CloudOperations:
     def __init__(self, user_id, github_url, repo_type):
         self.github_url = github_url
         self.repo_type = repo_type
         self.user_id = user_id
-        self.clone_dir = f"/tmp/git/{self.user_id}"
+        self.clone_dir = os.path.join(TEMP_DIR, self.user_id)
 
     async def launch(self):
         self.clone()
