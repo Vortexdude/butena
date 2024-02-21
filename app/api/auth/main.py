@@ -1,7 +1,10 @@
+from fastapi import Depends
 from fastapi import APIRouter, HTTPException, status
 from .schema import UserCreation, UserOut
 from .service import UserService
-import pymongo
+from .model import User
+from .depends import get_current_user
+
 
 router = APIRouter()
 
@@ -28,3 +31,7 @@ async def create_user(data: UserCreation):
         'enabled': data.enabled
     }
     return user_in
+
+@router.post('/me', summary="Get the current user and detail")
+async def me(user: User = Depends(get_current_user)):
+    return user

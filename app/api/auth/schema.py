@@ -1,5 +1,4 @@
 import uuid
-
 from pydantic import BaseModel, Field
 from uuid import UUID
 from typing import Optional
@@ -41,6 +40,10 @@ class UserOut(BaseModel):
     user_name: Optional[str]
     enabled: bool
 
+
+class TokenPayload(BaseModel):
+    sub: UUID = None
+    exp: int = None
 
 class UserUpdate(BaseModel):
     email: Optional[str] = None

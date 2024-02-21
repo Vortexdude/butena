@@ -1,5 +1,5 @@
 import uvicorn
-from settings import Conf
+from settings import Config
 
 
 def main() -> None:
@@ -7,10 +7,10 @@ def main() -> None:
 
     uvicorn.run(
         "core.main:get_app",
-        workers=Conf.WORKER_COUNT,
-        host=Conf.HOST,
-        port=Conf.PORT,
-        reload=Conf.RELOAD,
+        workers=Config.WORKER_COUNT,
+        host=Config.HOST,
+        port=Config.PORT,
+        reload=Config.RELOAD,
         factory=True,
     )
 

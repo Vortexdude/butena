@@ -1,7 +1,7 @@
 from .schema import UserCreation
 from .model import User
-from app.lib.utils import JWT, get_hashed_password, verify_password
-
+from app.lib.utils import get_hashed_password, verify_password
+from uuid import UUID
 
 class UserService:
     @staticmethod
@@ -18,6 +18,11 @@ class UserService:
     @staticmethod
     async def find_by_email(email: str):
         user = await User.find(User.email == email).first_or_none()
+        return user
+
+    @staticmethod
+    async def find_by_id(user_id: UUID):
+        user = await User.find(User.user_id == user_id).first_or_none()
         return user
 
     @staticmethod
