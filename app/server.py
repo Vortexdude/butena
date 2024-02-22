@@ -8,9 +8,9 @@ def main() -> None:
     uvicorn.run(
         "core.main:get_app",
         workers=Config.WORKER_COUNT,
-        host=Config.HOST,
-        port=Config.PORT,
-        reload=Config.RELOAD,
+        host=Config.API_HOST,
+        port=Config.API_PORT,
+        reload=Config.SERVER_RELOAD,
         factory=True,
     )
 

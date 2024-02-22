@@ -16,7 +16,7 @@ class CloudOperations:
         self.user_id = user_id
         self.clone_dir = os.path.join(Config.TEMP_DIR, str(self.user_id))
         self.client = boto3.client(self.aws_service)
-        self.zone = 'ap-south-1'
+        self.zone = Config.ZONE
         self.uploaded_file = []
 
     async def launch(self):
