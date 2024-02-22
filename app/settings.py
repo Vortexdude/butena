@@ -10,3 +10,6 @@ class Config:
     JWT_SECRET_KEY = "nothing_special"
     JWT_REFRESH_SECRET_KEY = "very_special"
     ALGORITHM = "HS256"
+    TEMP_DIR = "/tmp/git"
+    BUCKET_NAME = 'butena-public'
+    ZONE = 'ap-south-1'
