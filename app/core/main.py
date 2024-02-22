@@ -1,9 +1,10 @@
-from app.api.router import api_router
+# from ...api.router import api_router
+from api.router import api_router
 from fastapi import FastAPI
-from app.core.db import beanie_db
+from core.db import beanie_db
 from beanie import init_beanie
-from app.api.auth.model import User as UserModel
-from app.api.functionality.model import Deployment as DeploymentModel
+from api.auth.model import User as UserModel
+from api.functionality.model import Deployment as DeploymentModel
 
 
 def get_app() -> FastAPI:

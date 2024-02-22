@@ -1,4 +1,4 @@
-from app.lib.utils import Configuration
+from lib.utils import Configuration
 
 
 class Config(Configuration):

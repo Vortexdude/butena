@@ -6,7 +6,7 @@ from .model import User
 from .service import UserService
 from .schema import TokenPayload
 from pydantic import ValidationError
-from app.settings import Config
+from settings import Config
 
 reusable_oauth = OAuth2PasswordBearer(
     tokenUrl="/api/auth/login",

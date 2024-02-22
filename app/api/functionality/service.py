@@ -4,7 +4,7 @@ import shutil
 import glob
 import boto3
 from botocore.exceptions import ClientError
-from app.settings import Config
+from settings import Config
 
 
 class CloudOperations:

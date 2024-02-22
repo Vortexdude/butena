@@ -1,6 +1,6 @@
 from .schema import UserCreation
 from .model import User
-from app.lib.utils import get_hashed_password, verify_password
+from lib.utils import get_hashed_password, verify_password
 from uuid import UUID
 
 class UserService:

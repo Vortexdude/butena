@@ -1,7 +1,7 @@
 from fastapi.routing import APIRouter
-from app.api.auth.main import router as root_router
-from app.api.functionality.main import router as cloud_operations
-from app.api.auth.jwt import auth_router
+from api.auth.main import router as root_router
+from api.functionality.main import router as cloud_operations
+from api.auth.jwt import auth_router
 
 api_router = APIRouter()
 api_router.include_router(root_router, prefix="/users", tags=['user'])
