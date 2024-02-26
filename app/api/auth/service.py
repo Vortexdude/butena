@@ -10,18 +10,23 @@ class UserService:
 
     async def create_user(self, user: UserCreation):
         data = dict(user.dict())
+
+        # check user exist or not
+        user = self.get_user_by_email(data['email'])
+        if user:
+            return {"Error": "User already exist"}
+
         data['hashed_password'] = str(get_hashed_password(data['password']))
         data.pop('password')
-        user_in = Users(**data)
-        self.session.add(user_in)
+
+        new_user = Users(**data)
+        self.session.add(new_user)
         self.session.commit()
-        self.session.refresh(user_in)
+        self.session.refresh(new_user)
         return data
 
-    @staticmethod
-    async def find_by_email(email: str):
-        user = await User.find(User.email == email).first_or_none()
-        return user
+    def get_user_by_email(self, email: str):
+        return self.session.query(Users).filter(Users.email == email).first()
 
     @staticmethod
     async def find_by_id(user_id: UUID):
