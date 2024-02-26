@@ -3,7 +3,7 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import jwt
 from .model import Users
-from .service import UserService
+from .service import JwtService
 from .schema import TokenPayload
 from pydantic import ValidationError
 from settings import Config
@@ -34,12 +34,17 @@ async def get_current_user(token: str = Depends(reusable_oauth)) -> Users:
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    user = await UserService.find_by_id(token_data.sub)
+    user = await JwtService.find_by_id(str(token_data.sub))
 
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Could not find user",
         )
+    user = user.__dict__
+    user.pop('superuser')
+    user.pop('created_at')
+    user.pop('hashed_password')
+    user.pop('id')
 
     return user

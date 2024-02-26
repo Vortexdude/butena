@@ -1,7 +1,7 @@
 from .schema import UserCreation
 from .model import Users
 from lib.utils import get_hashed_password, verify_password
-
+from app.core.db.engine import SessionLocal
 
 class UserService:
     def __init__(self, db):
@@ -27,14 +27,22 @@ class UserService:
     def get_user_by_email(self, email: str):
         return self.session.query(Users).filter(Users.email == email).first()
 
-    def get_user_by_id(self, email: str):
+    def get_user_by_id(self, id: str):
         return self.session.query(Users).filter(Users.id == id).first()
 
 
 class JwtService:
+
+    @staticmethod
+    async def find_by_id(id: str):
+        with SessionLocal() as session:
+            user = session.query(Users).filter(Users.user_id == id).first()
+
+        return user if user else None
+
     @staticmethod
     async def authenticate(email: str, password: str):
-        from app.core.db.engine import SessionLocal
+
         with SessionLocal() as session:
             user = session.query(Users).filter(Users.email == email).first()
 
