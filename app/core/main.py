@@ -1,10 +1,6 @@
-# from ...api.router import api_router
 from api.router import api_router
 from fastapi import FastAPI
-from core.db import beanie_db
-from beanie import init_beanie
-from api.auth.model import User as UserModel
-from api.functionality.model import Deployment as DeploymentModel
+from app.core.db.engine import init_db
 
 
 def get_app() -> FastAPI:
@@ -24,13 +20,6 @@ def get_app() -> FastAPI:
         openapi_url="/api/openapi.json",
     )
 
-    @app.on_event("startup")
-    async def app_init():
-        await init_beanie(
-            database=beanie_db,
-            document_models=[UserModel, DeploymentModel]
-        )
-
     app.include_router(router=api_router, prefix="/api")
-
+    init_db()
     return app

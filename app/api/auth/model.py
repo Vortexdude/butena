@@ -1,35 +1,48 @@
-from beanie import Document, Indexed
 from datetime import datetime
-from pydantic import Field, BaseModel
-from uuid import UUID, uuid4
-from typing import Optional
+from sqlalchemy import func
+from sqlalchemy.orm import Mapped, mapped_column
+from app.core.db.engine import Base
+from sqlalchemy import (
+    Column,
+    String,
+    Integer,
+    Boolean
+)
 
 
-class UserBase(BaseModel):
-    user_id: UUID = Field(default_factory=uuid4)
-    email: Indexed(str, unique=True)
-    first_name: Optional[str] = None
-    last_name: Optional[str] = None
-    user_name: Optional[str] = None
-    hashed_password: str
-    enabled: Optional[bool] = True
+class Users(Base):
+    __tablename__ = "Users"
 
-    def __init__(self, **data):
-        data['user_name'] = f"{data['first_name'][0]}.{data['last_name']}".lower()
-        super().__init__(**data)
+    id = mapped_column(Integer, primary_key=True)
+    email = Column(String(225), nullable=False, unique=True)
+    user_id: Mapped[str]
+    first_name = Column(String(225), nullable=True)
+    last_name = Column(String(225), nullable=True)
+    username = Column(String(225), nullable=False)
+    superuser = Column(Boolean, default=False)
+    hashed_password = Column(String(255), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(insert_default=func.now())
 
+    def __repr__(self):
+        return f"User <{self.email}>"
 
-class User(Document, UserBase):
+    def __init__(
+            self,
+            email=None,
+            user_id=None,
+            first_name=None,
+            last_name=None,
+            username=None,
+            superuser=None,
+            hashed_password=None,
+            created_at=None
+    ):
+        self.email = email
+        self.user_id = user_id
+        self.first_name = first_name
+        self.last_name = last_name
+        self.username = username
+        self.superuser = superuser
+        self.hashed_password = hashed_password
+        self.created_at = created_at
 
-    def __repr__(self) -> str:
-        return f"<USER  {self.email}>"
-
-    def __str__(self):
-        return self.email
-
-    @property
-    def create(self) -> datetime:
-        return self.id.generation_time
-
-    class Settings:
-        name = "Users"

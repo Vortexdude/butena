@@ -11,11 +11,13 @@ class UserBase(BaseModel):
 
 
 class UserCreation(UserBase):
-    user_id: Optional[str] = uuid.uuid4()
+    user_id: Optional[str] = str(uuid.uuid4())
     first_name: Optional[str] = None
     last_name: Optional[str] = None
+    superuser: Optional[bool] = False
 
     model_config = {
+        'orm_mode': True,
         "json_schema_extra": {
             "examples": [
                 {
@@ -28,6 +30,7 @@ class UserCreation(UserBase):
             ]
         }
     }
+
 
 class UserAuth(BaseModel):
     email: str = Field(..., description="User Email")
@@ -44,6 +47,7 @@ class UserOut(BaseModel):
 class TokenPayload(BaseModel):
     sub: UUID = None
     exp: int = None
+
 
 class UserUpdate(BaseModel):
     email: Optional[str] = None

@@ -1,19 +1,22 @@
 from .schema import UserCreation
-from .model import User
+from .model import Users
 from lib.utils import get_hashed_password, verify_password
 from uuid import UUID
 
+
 class UserService:
-    @staticmethod
-    async def create_user(user: UserCreation):
-        user_in = User(
-            first_name=user.first_name,
-            last_name=user.last_name,
-            email=user.email,
-            hashed_password=get_hashed_password(user.password)
-        )
-        await user_in.insert()
-        return user_in
+    def __init__(self, db):
+        self.session = db
+
+    async def create_user(self, user: UserCreation):
+        data = dict(user.dict())
+        data['hashed_password'] = str(get_hashed_password(data['password']))
+        data.pop('password')
+        user_in = Users(**data)
+        self.session.add(user_in)
+        self.session.commit()
+        self.session.refresh(user_in)
+        return data
 
     @staticmethod
     async def find_by_email(email: str):

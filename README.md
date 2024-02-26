@@ -1,5 +1,14 @@
 # butena
 ## How to use
+sudo -u postgres psql
+\q
+
+python-jose
+python-dotenv
+fastapi
+passlib
+uvicorn
+
 
 > Requirements
 1. python3.12
@@ -27,4 +36,42 @@ pip3 install -r requirements.txt
 run the server  
 ```bash
 python3 app/server.py
+```
+
+```yaml
+version: '3'
+services:
+  api:
+    build:
+      context: .
+    container_name: butena-api
+    env_file:
+      - .env
+    environment:
+      PORT: 8000
+    ports:
+      - '8000:8000'
+    restart: always
+    depends_on:
+      - mongodb
+
+  mongodb:
+    image: mongo
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+
+  mongo-express:
+    image: mongo-express
+    restart: always
+    ports:
+      - 8081:8081
+    environment:
+      ME_CONFIG_MONGODB_URL: mongodb://mongodb:27017/
+
+
+
+
+
+
 ```
