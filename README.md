@@ -1,14 +1,5 @@
 # butena
 ## How to use
-sudo -u postgres psql
-\q
-
-python-jose
-python-dotenv
-fastapi
-passlib
-uvicorn
-
 
 > Requirements
 1. python3.12
