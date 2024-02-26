@@ -1,7 +1,9 @@
 from .schema import UserCreation
 from .model import Users
 from lib.utils import get_hashed_password, verify_password
-from app.core.db.engine import SessionLocal
+from core.db.engine import SessionLocal
+from fastapi import HTTPException
+
 
 class UserService:
     def __init__(self, db):
@@ -12,8 +14,8 @@ class UserService:
 
         # check user exist or not
         user = self.get_user_by_email(data['email'])
-        if user:
-            return {"Error": "User already exist"}
+        if user and user.email:
+            raise HTTPException(status_code=400, detail="Email already registered")
 
         data['hashed_password'] = str(get_hashed_password(data['password']))
         data.pop('password')

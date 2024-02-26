@@ -5,7 +5,7 @@ from .schema import UserCreation
 from .service import UserService
 from .model import Users
 from .depends import get_current_user
-from app.core.db.engine import get_db
+from core.db.engine import get_db
 router = APIRouter()
 
 

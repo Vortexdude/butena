@@ -1,6 +1,6 @@
 from api.router import api_router
 from fastapi import FastAPI
-from app.core.db.engine import init_db
+from core.db.engine import init_db
 
 
 def get_app() -> FastAPI:

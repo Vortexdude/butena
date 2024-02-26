@@ -1,5 +1,5 @@
 from sqlalchemy import create_engine
-from app.settings import Config
+from settings import Config
 from sqlalchemy.orm import Session
 engine = create_engine(Config.SQLALCHEMY_DATABASE_URI)
 
