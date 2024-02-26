@@ -41,10 +41,7 @@ async def get_current_user(token: str = Depends(reusable_oauth)) -> Users:
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Could not find user",
         )
-    user = user.__dict__
-    user.pop('superuser')
-    user.pop('created_at')
-    user.pop('hashed_password')
-    user.pop('id')
+    excluded_keys = ['superuser', 'created_at', 'hashed_password', 'id']
+    user = {key: value for key, value in user.__dict__.items() if key not in excluded_keys}
 
     return user
