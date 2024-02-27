@@ -14,7 +14,7 @@ reusable_oauth = OAuth2PasswordBearer(
 )
 
 
-async def get_current_user(token: str = Depends(reusable_oauth)) -> User:
+async def get_current_user(token: str = Depends(reusable_oauth)):
     try:
         payload = jwt.decode(
             token, conf.JWT_SECRET_KEY, algorithms=[conf.ALGORITHM]
@@ -42,4 +42,7 @@ async def get_current_user(token: str = Depends(reusable_oauth)) -> User:
             detail="Could not find user",
         )
 
-    return user
+    user_dict = {key: value for key, value in user.__dict__.items() if
+                 key not in ['enabled', 'created_at', 'hashed_password', 'id']}
+
+    return user_dict
