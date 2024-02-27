@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 from .service import CloudOperations
 from .schema import Deployment
-from api.auth.depends import get_current_user
+from app.api.auth.depends import get_current_user
 router = APIRouter()
 
 
