@@ -1,10 +1,11 @@
 from fastapi import Depends
 from fastapi import APIRouter, HTTPException, status
-from .schema import UserCreation, UserOut
+from .schema import UserCreation
 from .service import UserService
 from .model import User
 from .depends import get_current_user
-
+from app.core.db.engine import get_db
+from sqlalchemy.orm import Session
 
 router = APIRouter()
 
@@ -15,22 +16,17 @@ async def root():
 
 
 #  response_model=UserOut
-@router.post("/signup", summary="Create New User", response_model=UserOut)
-async def create_user(data: UserCreation):
-    user = await UserService.find_by_email(data.email)
-    if user:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="User is already present with the email"
-        )
-
-    data = await UserService.create_user(data)
+@router.post("/signup", summary="Create New User")
+async def create_user(data: UserCreation, db: Session = Depends(get_db)):
+    user_service = UserService(db=db)
+    data = await user_service.create(data)
     user_in = {
         'user_id': data.user_id,
         'user_name': data.user_name,
         'enabled': data.enabled
     }
     return user_in
+
 
 @router.post('/me', summary="Get the current user and detail")
 async def me(user: User = Depends(get_current_user)):

@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from typing import Any
 from fastapi.security import OAuth2PasswordRequestForm
 from .service import UserService
-from lib.utils import JWT
+from app.core.utils import JWT
 
 auth_router = APIRouter()
 
