@@ -20,9 +20,7 @@ def get_app() -> FastAPI:
         openapi_url="/api/openapi.json",
     )
 
-    @app.on_event("startup")
-    def on_startup():
-        init_db()
+    init_db()
 
     app.include_router(router=api_router, prefix="/api")
 
