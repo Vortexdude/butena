@@ -6,7 +6,7 @@ from .model import User
 from .service import UserService
 from .schema import TokenPayload
 from pydantic import ValidationError
-from settings import Config
+from app.settings import conf
 
 reusable_oauth = OAuth2PasswordBearer(
     tokenUrl="/api/auth/login",
@@ -17,7 +17,7 @@ reusable_oauth = OAuth2PasswordBearer(
 async def get_current_user(token: str = Depends(reusable_oauth)) -> User:
     try:
         payload = jwt.decode(
-            token, Config.JWT_SECRET_KEY, algorithms=[Config.ALGORITHM]
+            token, conf.JWT_SECRET_KEY, algorithms=[conf.ALGORITHM]
         )
         token_data = TokenPayload(**payload)
 
@@ -27,14 +27,14 @@ async def get_current_user(token: str = Depends(reusable_oauth)) -> User:
                 detail="Token expired",
                 headers={"WWW-Authenticate": "Bearer"},
             )
-    except(jwt.JWTError, ValidationError):
+    except (jwt.JWTError, ValidationError):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Could not validate credentials",
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    user = await UserService.find_by_id(token_data.sub)
+    user = await UserService.find_by_id(str(token_data.sub))   # specify the string type
 
     if not user:
         raise HTTPException(

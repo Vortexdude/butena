@@ -6,28 +6,29 @@ from typing import Optional
 
 class UserBase(BaseModel):
     email: str = Field(..., description="User Email")
-    username: str = Field(..., min_length=5, max_length=20, description="User username")
+    user_name: str = Field(..., min_length=5, max_length=20, description="User username")
     password: str = Field(..., min_length=5, max_length=24, description="User password")
 
 
 class UserCreation(UserBase):
-    user_id: Optional[str] = uuid.uuid4()
+    user_id: Optional[str] = str(uuid.uuid4())
     first_name: Optional[str] = None
     last_name: Optional[str] = None
 
-    model_config = {
-        "json_schema_extra": {
+    class Config:
+        orm_mod = True
+        json_schema_extra = {
             "examples": [
                 {
                     "first_name": "Nitin",
                     "last_name": "Namdev",
                     "email": "nnamdev@google.com",
-                    "username": 'nnamdev',
+                    "user_name": 'nnamdev',
                     "password": "Nothingspecial"
                 }
             ]
         }
-    }
+
 
 class UserAuth(BaseModel):
     email: str = Field(..., description="User Email")
