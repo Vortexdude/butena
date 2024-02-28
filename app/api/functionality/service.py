@@ -4,19 +4,19 @@ import shutil
 import glob
 import boto3
 from botocore.exceptions import ClientError
-from app.settings import Config
+from app.settings import conf
 
 
 class CloudOperations:
     def __init__(self, user_id, github_url, repo_type):
         self.aws_service = 's3'
-        self.bucket_name = Config.BUCKET_NAME
+        self.bucket_name = conf.BUCKET_NAME
         self.github_url = github_url
         self.repo_type = repo_type
         self.user_id = user_id
-        self.clone_dir = os.path.join(Config.TEMP_DIR, str(self.user_id))
+        self.clone_dir = os.path.join(conf.TEMP_DIR, str(self.user_id))
         self.client = boto3.client(self.aws_service)
-        self.zone = Config.ZONE
+        self.zone = conf.BUCKET_ZONE
         self.uploaded_file = []
 
     async def launch(self):
@@ -29,7 +29,7 @@ class CloudOperations:
             return {"status": "Error while cloning the repo.. "}
 
         if 'index.html' in self.uploaded_file:
-            full_url = f"https://{self.bucket_name}.{self.aws_service}.{Config.ZONE}.amazonaws.com/website/2bbf1c95-b/index.html"
+            full_url = f"https://{self.bucket_name}.{self.aws_service}.{self.zone}.amazonaws.com/website/{str(self.user_id)[:10]}/index.html"
         else:
             full_url = "Cant find the index file in the repo"
 
@@ -47,20 +47,22 @@ class CloudOperations:
         Repo.clone_from(self.github_url, self.clone_dir)
         return True
 
-    def _file_operations(self):
+    def _file_operations(self) -> bool:
+        key = ''
         static_files = glob.glob(f"{self.clone_dir}/*")
         relative_paths = [os.path.relpath(file_path, self.clone_dir) for file_path in static_files]
 
         # uploading files to s3
         for file in relative_paths:
             self.uploaded_file.append(file)
-            self._upload_file(file)
+            key = f"website/{str(self.user_id)[:10]}/{file}"
+            self._upload_file(file, key)
 
         # cleanup . .
         shutil.rmtree(self.clone_dir)
         return True
 
-    def _upload_file(self, file_name, object_name=None):
+    def _upload_file(self, file_name, key, object_name=None):
         """Upload a file to an S3 bucket
 
         :param file_name: File to upload
@@ -71,8 +73,6 @@ class CloudOperations:
         # If S3 object_name was not specified, use file_name
         if object_name is None:
             object_name = os.path.basename(file_name)
-
-        key = f"website/{str(self.user_id)[:10]}/{file_name}"
 
         try:
             _file_path = os.path.join(self.clone_dir, file_name)
@@ -92,3 +92,37 @@ class CloudOperations:
             print(e)
             return False
         return True
+
+
+class AwsKit:
+    def __init__(self, user_id: str, service='s3', **kwargs):
+        self.bucket_name = conf.BUCKET_NAME
+        self.client = boto3.client(service)
+        self.user_id = user_id
+
+    def list_objects(self) -> list:
+        files = []
+        key = f"website/{self.user_id[:10]}"
+        try:
+            response = self.client.list_objects(Bucket=self.bucket_name, Prefix=key)
+            for item in response['Contents']:
+                files.append(item['Key'])
+        except ClientError as e:
+            raise e
+
+        return files
+        # https://butena-public.s3.ap-south-1.amazonaws.com/website/e3c7551f-b/index.html
+
+    def delete_deployment(self):
+        files = self.list_objects()
+        if not files:
+            return {"Status": "No files are there"}
+
+        for file in files:
+            self._delete_object(file)
+            # website/e3c7551f-b/index.html
+
+        return {"Status": "Deleted Successfully!"}
+
+    def _delete_object(self, file):
+        self.client.delete_object(Bucket=self.bucket_name, Key=file)
