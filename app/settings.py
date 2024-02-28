@@ -1,4 +1,8 @@
 from app.core.config import Settings
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger('butena')
 
 
 class Config(Settings):
@@ -15,8 +19,13 @@ class Config(Settings):
     :param TEMP_DIR: /tmp/git
     :param BUCKET_NAME: butena-public
     :param BUCKET_ZONE: ap-south-1
+    :param API_TITLE: Butena
+    :param DESCRIPTION: "Fast api starter"
+    :param DOC_URL: /api/doc
+    :param REDOC_URL: /api/redoc/
     :return: True if file was uploaded, else False
     """
+
     ACCESS_TOKEN_EXPIRE_MINUTES: str = 30  # 30 minutes
     REFRESH_TOKEN_EXPIRE_MINUTES: str = 60 * 24 * 7  # 7 days
 

@@ -1,5 +1,5 @@
 import uvicorn
-from settings import conf
+from settings import conf, logger
 
 
 def main() -> None:
@@ -16,4 +16,5 @@ def main() -> None:
 
 
 if __name__ == "__main__":
+    logger.info("Starting the server")
     main()
