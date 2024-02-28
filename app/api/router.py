@@ -5,6 +5,7 @@ from app.api.auth.jwt import auth_router
 
 api_router = APIRouter()
 
+
 @api_router.get("/health")
 def health():
     return {"message": "You are live"}
