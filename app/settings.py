@@ -1,8 +1,13 @@
 from app.core.config import Settings
 import logging
+import sys
 
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger('butena')
+# logger = logging.getLogger(__name__)
+# logger.setLevel(logging.DEBUG)
+# stream_handler = logging.StreamHandler(sys.stdout)
+# log_formatter = logging.Formatter("%(asctime)s [%(processName)s: %(process)d] [%(threadName)s: %(thread)d] [%(levelname)s] %(name)s: %(message)s")
+# stream_handler.setFormatter(log_formatter)
+# logger.addHandler(stream_handler)
 
 
 class Config(Settings):
@@ -30,4 +35,8 @@ class Config(Settings):
     REFRESH_TOKEN_EXPIRE_MINUTES: str = 60 * 24 * 7  # 7 days
 
 
+# logger.info(f"Using the configuration for {conf.API_TITLE}")
+
+
 conf = Config()
+
