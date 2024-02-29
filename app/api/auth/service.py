@@ -1,5 +1,5 @@
 from .schema import UserCreation
-from .model import User
+from app.core.db.models import User
 from app.core.utils import JWT
 from sqlalchemy.orm import Session
 from fastapi.exceptions import HTTPException

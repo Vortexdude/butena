@@ -16,3 +16,17 @@ class Deployment(BaseModel):
             ]
         }
     }
+
+
+class DeploySchema(BaseModel):
+    bucket: str
+    zone: str
+
+    model_config = {
+        "json_schema_extra": {
+            "examples": [{
+                "bucket": "butena-public",
+                "zone": "ap-south-1",
+            }]
+        }
+    }

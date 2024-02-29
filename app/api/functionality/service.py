@@ -5,21 +5,57 @@ import glob
 import boto3
 from botocore.exceptions import ClientError
 from app.settings import conf
+from app.core.db.models import Deployment
+from sqlalchemy.orm import Session
+
+
+class DatabaseOperation:
+
+    def __init__(self, db: Session):
+        self.db = db
+        self.bucket_name = conf.BUCKET_NAME
+        self.zone = conf.BUCKET_ZONE
+
+    async def add(self, user_id):
+        data = {
+            "user_id": user_id,
+            "bucket": self.bucket_name,
+            "zone": self.zone
+        }
+        dep = Deployment(**data)
+        self.db.add(dep)
+        self.db.commit()
+        self.db.refresh(dep)
+
+        return dep.id
+
+    async def delete_record(self, id: str, user_id: str):
+        _deployments = await self.db.query(Deployment).filter_by(user_id=user_id).filter_by(id=id).first()
+        if not _deployments:
+            return {"Status": "No Deployment found in the database"}
+
+        response = self.db.query(Deployment).filter_by(id=id).delete()
+        print(response)
+        return {"Status": "Deployment Deleted Successfully!"}
+
+    def find_by_id(self, id: str):
+        return self.db.query(Deployment).filter_by(id=id).first()
 
 
 class CloudOperations:
-    def __init__(self, user_id, github_url, repo_type):
+    def __init__(self, deployment_id, user_name, github_url, repo_type):
         self.aws_service = 's3'
         self.bucket_name = conf.BUCKET_NAME
         self.github_url = github_url
         self.repo_type = repo_type
-        self.user_id = user_id
-        self.clone_dir = os.path.join(conf.TEMP_DIR, str(self.user_id))
+        self.user_name = user_name
+        self.deployment_id = deployment_id
+        self.clone_dir = os.path.join(conf.TEMP_DIR, str(self.user_name))
         self.client = boto3.client(self.aws_service)
         self.zone = conf.BUCKET_ZONE
         self.uploaded_file = []
 
-    async def launch(self):
+    async def create(self):
         if not self._clone():
             print("Error while cloning the repo.. ")
             return {"status": "Error while cloning the repo.. "}
@@ -29,7 +65,7 @@ class CloudOperations:
             return {"status": "Error while cloning the repo.. "}
 
         if 'index.html' in self.uploaded_file:
-            full_url = f"https://{self.bucket_name}.{self.aws_service}.{self.zone}.amazonaws.com/website/{str(self.user_id)[:10]}/index.html"
+            full_url = f"https://{self.bucket_name}.{self.aws_service}.{self.zone}.amazonaws.com/website/{self.user_name}/{self.deployment_id}/index.html"
         else:
             full_url = "Cant find the index file in the repo"
 
@@ -55,7 +91,7 @@ class CloudOperations:
         # uploading files to s3
         for file in relative_paths:
             self.uploaded_file.append(file)
-            key = f"website/{str(self.user_id)[:10]}/{file}"
+            key = f"website/{self.user_name}/{self.deployment_id}/{file}"
             self._upload_file(file, key)
 
         # cleanup . .
@@ -95,14 +131,16 @@ class CloudOperations:
 
 
 class AwsKit:
-    def __init__(self, user_id: str, service='s3', **kwargs):
+    def __init__(self, service='s3', data: dict = None, **kwargs):
+
         self.bucket_name = conf.BUCKET_NAME
         self.client = boto3.client(service)
-        self.user_id = user_id
+        self.user_id = data['user_id']
+        self.user_name = data['user_name']
 
-    def list_objects(self) -> list:
+    def _list_objects(self, deployment_id: str) -> list:
         files = []
-        key = f"website/{self.user_id[:10]}"
+        key = f"website/{self.user_name}/{deployment_id}"
         try:
             response = self.client.list_objects(Bucket=self.bucket_name, Prefix=key)
             for item in response['Contents']:
@@ -113,8 +151,8 @@ class AwsKit:
         return files
         # https://butena-public.s3.ap-south-1.amazonaws.com/website/e3c7551f-b/index.html
 
-    def delete_deployment(self):
-        files = self.list_objects()
+    def delete_deployment(self, deployment_id):
+        files = self._list_objects(deployment_id)
         if not files:
             return {"Status": "No files are there"}
 

@@ -1,8 +1,8 @@
 from fastapi import Depends
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter
 from .schema import UserCreation
 from .service import UserService
-from .model import User
+from app.core.db.models import User
 from .depends import get_current_user
 from app.core.db.engine import get_db
 from sqlalchemy.orm import Session

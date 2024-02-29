@@ -2,14 +2,13 @@ from datetime import datetime
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import jwt
-from .model import User
 from .service import UserService
 from .schema import TokenPayload
 from pydantic import ValidationError
 from app.settings import conf
 
 reusable_oauth = OAuth2PasswordBearer(
-    tokenUrl="/api/auth/login",
+    tokenUrl=f"/api/{conf.API_VERSION}/auth/login",
     scheme_name="JWT"
 )
 
