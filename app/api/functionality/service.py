@@ -160,7 +160,7 @@ class AwsKit:
             self._delete_object(file)
             # website/e3c7551f-b/index.html
 
-        return {"Status": "Deleted Successfully!"}
+        return {"Status": f"Deployment {deployment_id} Deleted Successfully!"}
 
     def _delete_object(self, file):
         self.client.delete_object(Bucket=self.bucket_name, Key=file)
