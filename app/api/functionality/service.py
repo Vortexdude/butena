@@ -1,12 +1,10 @@
 from git import Repo
 import os
-import shutil
-import glob
-import boto3
-from botocore.exceptions import ClientError
-from app.settings import conf
-from app.core.db.models import Deployment
 from sqlalchemy.orm import Session
+from app.settings import conf
+from app.core.utils import FileOperations
+from app.core.db.models import Deployment
+from .s3_operation import BaseS3Operation
 
 KEY = "website/{user_name}/{deployment}"
 BUCKET_NAME = conf.BUCKET_NAME
@@ -14,74 +12,10 @@ ZONE = conf.BUCKET_ZONE
 CLONE_DIR = conf.TEMP_DIR
 
 
-class FileOperations:
-
-    def __init__(self):
-        pass
-
-    @staticmethod
-    def list_files(abs_dir: str) -> list:
-        static_files = glob.glob(f"{abs_dir}/*")
-        return [os.path.relpath(file_path, abs_dir) for file_path in static_files]
-
-    @staticmethod
-    def delete_all_files(abs_path: str):
-        if os.path.isdir(abs_path):
-            print(f"Removing ... {abs_path}")
-            shutil.rmtree(abs_path)
-
-
-class BaseS3Operation:
-    def __init__(self):
-        self.client = boto3.client('s3')
-
-    def list_files(self, bucket_name: str, key: str) -> list | None:
-        files = []
-        try:
-            response = self.client.list_objects(Bucket=bucket_name, Prefix=key)
-            if 'Contents' not in response:
-                return
-
-            for item in response['Contents']:
-                files.append(item['Key'])
-
-        except ClientError as e:
-            raise e
-
-        return files
-
-    def upload_file(self, bucket, file_name, key) -> bool:
-
-        try:
-            with open(file_name, 'rb') as f:
-                contents = f.read()
-
-            response = self.client.put_object(
-                Body=bytes(contents),
-                Bucket=bucket,
-                Key=key,
-                ContentType='text/html',
-                ContentDisposition='inline'
-            )
-            print(f"Uploading file {file_name} ...")
-
-        except ClientError as e:
-            print(e)
-            return False
-        return True
-
-    def delete_file(self, bucket: str, key: str):
-        try:
-            self.client.delete_object(Bucket=bucket, Key=key)
-            return True
-
-        except ClientError as e:
-            raise e
-
-
-class DatabaseOperation:
+class DatabaseOperation(BaseS3Operation):
 
     def __init__(self, db: Session):
+        super().__init__()
         self.db = db
 
     def add(self, user_id) -> str | int:
@@ -98,7 +32,7 @@ class DatabaseOperation:
 
     def delete(self, id: str, user_id: str):
         _deployments = self.db.query(Deployment).filter_by(user_id=user_id).filter_by(id=id).first()
-        print(_deployments)
+
         if not _deployments:
             return {"db_status": "No Deployment found in the database", 'operation_status': False}
 
@@ -110,11 +44,10 @@ class DatabaseOperation:
         return self.db.query(Deployment).filter_by(id=id).first()
 
 
-class CloudOperations(BaseS3Operation, DatabaseOperation):
+class CloudOperations(DatabaseOperation):
     def __init__(self, db: Session, user: dict):
-        super().__init__()
-        self.db = db
-        self.bucket_name = conf.BUCKET_NAME
+        super().__init__(db=db)
+        self.bucket_name = BUCKET_NAME
         self.user_name = user['user_name']
         self.user_id = user['user_id']
         self.bucket_files = []
@@ -136,7 +69,8 @@ class CloudOperations(BaseS3Operation, DatabaseOperation):
             local_file_path = os.path.join(user_namespace, file)  # for get the full local path /tmp/git/username/files
             self.upload_file(bucket=BUCKET_NAME, file_name=local_file_path, key=s3_key)  # uploading to s3
             self.bucket_files.append(file)  # uploaded to s3
-        shutil.rmtree(user_namespace)  # cleanup
+
+        FileOperations.cleanup(user_namespace)  # cleanup
 
         if 'index.html' in self.bucket_files:
             full_url = f"https://{BUCKET_NAME}.s3.{ZONE}.amazonaws.com/{key}/index.html"
