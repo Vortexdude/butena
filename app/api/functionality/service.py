@@ -6,20 +6,40 @@ from app.core.utils import FileOperations
 from app.core.db.models import Deployment
 from app.exceptions import DatabaseException, StatusCode, FileException
 from .s3_operation import BaseS3Operation
+from typing import Union
 
-KEY = "website/{user_name}/{deployment}"
+DEPLOYMENT_KEY_FORMAT = "website/{user_name}/{deployment}"
 BUCKET_NAME = conf.BUCKET_NAME
 ZONE = conf.BUCKET_ZONE
 CLONE_DIR = conf.TEMP_DIR
 
 
 class DatabaseOperation(BaseS3Operation):
+    """
+        Handles database operations related to deployments.
+    """
 
-    def __init__(self, db: Session):
+    def __init__(self, db: Session) -> None:
+        """
+        Constructor for DatabaseOperation.
+
+        Args:
+            db (Session): SQLAlchemy database session.
+        """
         super().__init__()
         self.db = db
 
-    def add(self, user_id) -> str | int:
+    def add(self, user_id: str) -> int:
+        """
+        Add a new deployment record to the database.
+
+        Args:
+            user_id (str): User ID.
+
+        Returns:
+            int: The ID of the added deployment.
+        """
+
         dep = Deployment(
             user_id=user_id,
             bucket=BUCKET_NAME,
@@ -31,21 +51,54 @@ class DatabaseOperation(BaseS3Operation):
 
         return dep.id
 
-    def delete(self, id: str, user_id: str):
-        _deployments = self.db.query(Deployment).filter_by(user_id=user_id).filter_by(id=id).first()
-        if _deployments:
+    def delete(self, id: str, user_id: str) -> bool:
+        """
+        Delete a deployment record from the database.
+
+        Args:
+            id (str): Deployment ID.
+            user_id (str): User ID.
+
+        Raises:
+            DatabaseException: If the deployment is not found.
+        """
+
+        deployment = self.db.query(Deployment).filter_by(user_id=user_id, id=id).first()
+        if deployment:
             self.db.query(Deployment).filter_by(id=id).delete()
             self.db.commit()
             return True
 
         raise DatabaseException(status_code=StatusCode.NOTFOUND_404)
 
-    def find_by_id(self, id: str):
+    def find_by_id(self, id: str) -> Union[Deployment, None]:
+        """
+        Find a deployment record by ID.
+
+        Args:
+            id (str): Deployment ID.
+
+        Returns:
+            Deployment: The deployment record.
+        """
+
         return self.db.query(Deployment).filter_by(id=id).first()
 
 
 class CloudOperations(DatabaseOperation):
+    """
+    Handles cloud operations related to deployments.
+    """
+
     def __init__(self, db: Session, user: dict):
+        """
+        Constructor for CloudOperations.
+
+        Args:
+            db (Session): SQLAlchemy database session.
+            user (dict): User information.
+        """
+
         super().__init__(db=db)
         self.bucket_name = BUCKET_NAME
         self.user_name = user['user_name']
@@ -53,6 +106,16 @@ class CloudOperations(DatabaseOperation):
         self.bucket_files = []
 
     async def create_deployment(self, github_url, repo_type):
+        """
+        Create a new deployment.
+
+        Args:
+            github_url (str): URL of the GitHub repository.
+            repo_type (str): Type of repository.
+
+        Returns:
+            dict: Result of the deployment creation.
+        """
 
         deployment_id = DatabaseOperation(self.db).add(self.user_id)
 
@@ -63,7 +126,7 @@ class CloudOperations(DatabaseOperation):
         FileOperations.delete_all_files(user_namespace)
         Repo.clone_from(github_url, user_namespace)
         files = FileOperations.list_files(user_namespace)  # get all the files names as a list in a dir
-        key = KEY.format(user_name=self.user_name, deployment=deployment_id)
+        key = DEPLOYMENT_KEY_FORMAT.format(user_name=self.user_name, deployment=deployment_id)
         for file in files:
             s3_key = key + '/' + f'{file}'  # key location for the s3 bucket
             local_file_path = os.path.join(user_namespace, file)  # for get the full local path /tmp/git/username/files
@@ -84,11 +147,20 @@ class CloudOperations(DatabaseOperation):
         }
 
     async def delete_deployment(self, deployment_id):
+        """
+        Delete a deployment.
+
+        Args:
+            deployment_id (str): Deployment ID.
+
+        Returns:
+            dict: Result of the deployment deletion.
+        """
+
         response = self.delete(id=deployment_id, user_id=self.user_id)
         if not response:
             pass
-        key = KEY.format(user_name=self.user_name, deployment=deployment_id)
-        # key = f"website/{self.user_name}/{deployment_id}"
+        key = DEPLOYMENT_KEY_FORMAT.format(user_name=self.user_name, deployment=deployment_id)
         files = self.list_files(bucket_name=BUCKET_NAME, key=key)
 
         if not files:
