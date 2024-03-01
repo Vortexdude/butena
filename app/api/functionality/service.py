@@ -35,9 +35,10 @@ class DatabaseOperation(BaseS3Operation):
         _deployments = self.db.query(Deployment).filter_by(user_id=user_id).filter_by(id=id).first()
         if _deployments:
             self.db.query(Deployment).filter_by(id=id).delete()
+            self.db.commit()
             return True
 
-        raise DatabaseException(status_code=StatusCode.BAD_GATEWAY_502)
+        raise DatabaseException(status_code=StatusCode.NOTFOUND_404)
 
     def find_by_id(self, id: str):
         return self.db.query(Deployment).filter_by(id=id).first()
@@ -74,7 +75,7 @@ class CloudOperations(DatabaseOperation):
         if 'index.html' in self.bucket_files:
             full_url = f"https://{BUCKET_NAME}.s3.{ZONE}.amazonaws.com/{key}/index.html"
         else:
-            raise DatabaseException(status_code=StatusCode.FORBIDDEN_403)
+            raise DatabaseException(status_code=StatusCode.BAD_GATEWAY_502)
 
         return {
             "status": "done",

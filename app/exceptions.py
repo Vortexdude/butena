@@ -54,6 +54,8 @@ class FileException(HTTPException):
     def __init__(self, status_code=None, detail=None):
         self.status_code = StatusCode.NOTFOUND_404 if not status_code else status_code
         self.detail = "File not found!" if not detail else detail
+        if self.status_code == 502:
+            self.detail = "No index file found in the repo!"
 
 
 def init_exceptions(app: FastAPI):
