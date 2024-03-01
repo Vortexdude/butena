@@ -4,10 +4,8 @@ from sqlalchemy.orm import Session
 from app.settings import conf
 from app.core.utils import FileOperations
 from app.core.db.models import Deployment
+from app.exceptions import DatabaseException, StatusCode, FileException
 from .s3_operation import BaseS3Operation
-from fastapi.exceptions import HTTPException
-from fastapi import status
-
 
 KEY = "website/{user_name}/{deployment}"
 BUCKET_NAME = conf.BUCKET_NAME
@@ -39,12 +37,7 @@ class DatabaseOperation(BaseS3Operation):
             self.db.query(Deployment).filter_by(id=id).delete()
             return True
 
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail={
-                "message": "No deployment found"
-            }
-        )
+        raise DatabaseException(status_code=StatusCode.BAD_GATEWAY_502)
 
     def find_by_id(self, id: str):
         return self.db.query(Deployment).filter_by(id=id).first()
@@ -63,10 +56,7 @@ class CloudOperations(DatabaseOperation):
         deployment_id = DatabaseOperation(self.db).add(self.user_id)
 
         if not deployment_id:
-            raise HTTPException(
-                status_code=status.HTTP_502_BAD_GATEWAY,
-                detail="Error with the database side"
-            )
+            raise DatabaseException(status_code=StatusCode.NOTFOUND_404)
 
         user_namespace = str(os.path.join(CLONE_DIR, self.user_name))
         FileOperations.delete_all_files(user_namespace)
@@ -84,10 +74,7 @@ class CloudOperations(DatabaseOperation):
         if 'index.html' in self.bucket_files:
             full_url = f"https://{BUCKET_NAME}.s3.{ZONE}.amazonaws.com/{key}/index.html"
         else:
-            raise HTTPException(
-                status_code=status.HTTP_502_BAD_GATEWAY,
-                detail="No file found in the bucket"
-            )
+            raise DatabaseException(status_code=StatusCode.FORBIDDEN_403)
 
         return {
             "status": "done",
@@ -104,10 +91,7 @@ class CloudOperations(DatabaseOperation):
         files = self.list_files(bucket_name=BUCKET_NAME, key=key)
 
         if not files:
-            raise HTTPException(
-                status_code=status.HTTP_502_BAD_GATEWAY,
-                detail="No file found in the bucket"
-            )
+            raise FileException()
 
         for file in files:
             self.delete_file(bucket=BUCKET_NAME, key=file)
