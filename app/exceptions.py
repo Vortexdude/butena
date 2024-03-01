@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
-from fastapi import HTTPException, status
+from fastapi import HTTPException
 from enum import IntEnum
 
 
