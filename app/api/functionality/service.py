@@ -5,6 +5,9 @@ from app.settings import conf
 from app.core.utils import FileOperations
 from app.core.db.models import Deployment
 from .s3_operation import BaseS3Operation
+from fastapi.exceptions import HTTPException
+from fastapi import status
+
 
 KEY = "website/{user_name}/{deployment}"
 BUCKET_NAME = conf.BUCKET_NAME
@@ -32,13 +35,16 @@ class DatabaseOperation(BaseS3Operation):
 
     def delete(self, id: str, user_id: str):
         _deployments = self.db.query(Deployment).filter_by(user_id=user_id).filter_by(id=id).first()
+        if _deployments:
+            self.db.query(Deployment).filter_by(id=id).delete()
+            return True
 
-        if not _deployments:
-            return {"db_status": "No Deployment found in the database", 'operation_status': False}
-
-        response = self.db.query(Deployment).filter_by(id=id).delete()
-
-        return {"db_status": "Deployment Deleted Successfully!", 'operation_status': True}
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={
+                "message": "No deployment found"
+            }
+        )
 
     def find_by_id(self, id: str):
         return self.db.query(Deployment).filter_by(id=id).first()
@@ -57,7 +63,10 @@ class CloudOperations(DatabaseOperation):
         deployment_id = DatabaseOperation(self.db).add(self.user_id)
 
         if not deployment_id:
-            return {"Status", "Error with database"}
+            raise HTTPException(
+                status_code=status.HTTP_502_BAD_GATEWAY,
+                detail="Error with the database side"
+            )
 
         user_namespace = str(os.path.join(CLONE_DIR, self.user_name))
         FileOperations.delete_all_files(user_namespace)
@@ -75,7 +84,10 @@ class CloudOperations(DatabaseOperation):
         if 'index.html' in self.bucket_files:
             full_url = f"https://{BUCKET_NAME}.s3.{ZONE}.amazonaws.com/{key}/index.html"
         else:
-            full_url = "Cant find the index file in the repo"
+            raise HTTPException(
+                status_code=status.HTTP_502_BAD_GATEWAY,
+                detail="No file found in the bucket"
+            )
 
         return {
             "status": "done",
@@ -85,19 +97,19 @@ class CloudOperations(DatabaseOperation):
 
     async def delete_deployment(self, deployment_id):
         response = self.delete(id=deployment_id, user_id=self.user_id)
-        if not response['operation_status']:
-            return response['db_status']
-
+        if not response:
+            pass
         key = KEY.format(user_name=self.user_name, deployment=deployment_id)
         # key = f"website/{self.user_name}/{deployment_id}"
         files = self.list_files(bucket_name=BUCKET_NAME, key=key)
 
         if not files:
-            return {"Status": "No files found in bucket"}
+            raise HTTPException(
+                status_code=status.HTTP_502_BAD_GATEWAY,
+                detail="No file found in the bucket"
+            )
 
         for file in files:
             self.delete_file(bucket=BUCKET_NAME, key=file)
 
-        response['deployment_status'] = f"Deployment {deployment_id} Deleted Successfully!"
-
-        return response
+        return {"Status": f"Deployment {deployment_id} Deleted Successfully!"}

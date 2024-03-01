@@ -2,9 +2,8 @@ from .schema import UserCreation
 from app.core.db.models import User
 from app.core.utils import JWT
 from sqlalchemy.orm import Session
-from fastapi.exceptions import HTTPException
-from fastapi import status
 from app.core.db.engine import SessionLocal
+from app.exceptions import UserException, StatusCode
 
 
 class UserService:
@@ -16,10 +15,7 @@ class UserService:
         _data = data.dict()
         user = self.find_by_email(email=_data['email'])
         if user:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="User is already present with the email"
-            )
+            raise UserException(status_code=StatusCode.CONFLICT_409)
 
         _data['hashed_password'] = JWT.get_password_hash(_data['password'])
         _data.pop('password')
