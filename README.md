@@ -17,6 +17,7 @@ create and activate the virtual environment
 ```bash
 python3 -m venv venv
 source venv/bin/activate
+export PYTHONPATH=$PWD
 ```
 
 install the requirements  
