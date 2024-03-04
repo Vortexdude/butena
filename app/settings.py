@@ -39,4 +39,3 @@ class Config(Settings):
 
 
 conf = Config()
-

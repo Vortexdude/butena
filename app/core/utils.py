@@ -1,10 +1,11 @@
+import os
+import shutil
+import glob
 from jose import jwt
 from passlib.context import CryptContext
 from datetime import datetime, timedelta
 from typing import Any
 from ..settings import conf
-import logging
-import sys
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -42,4 +43,22 @@ class JWT:
         return pwd_context.hash(password)
 
 
+class FileOperations:
 
+    def __init__(self):
+        pass
+
+    @staticmethod
+    def list_files(abs_dir: str) -> list:
+        static_files = glob.glob(f"{abs_dir}/*")
+        return [os.path.relpath(file_path, abs_dir) for file_path in static_files]
+
+    @staticmethod
+    def delete_all_files(abs_path: str):
+        if os.path.isdir(abs_path):
+            print(f"Removing ... {abs_path}")
+            shutil.rmtree(abs_path)
+
+    @staticmethod
+    def cleanup(path: str):
+        shutil.rmtree(path)

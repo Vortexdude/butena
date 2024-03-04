@@ -17,11 +17,6 @@ def init_db():
     Base.metadata.create_all(engine)
 
 
-def get_session():
-    with Session(engine) as session:
-        yield session
-
-
 def get_db():
     db = SessionLocal()
     try:

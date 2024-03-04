@@ -30,23 +30,6 @@ class UserCreation(UserBase):
         }
 
 
-class UserAuth(BaseModel):
-    email: str = Field(..., description="User Email")
-    username: str = Field(..., min_length=5, max_length=20, description="User username")
-    password: str = Field(..., min_length=5, max_length=24, description="User password")
-
-
-class UserOut(BaseModel):
-    user_id: UUID
-    user_name: Optional[str]
-    enabled: bool
-
-
 class TokenPayload(BaseModel):
     sub: UUID = None
     exp: int = None
-
-class UserUpdate(BaseModel):
-    email: Optional[str] = None
-    first_name: Optional[str] = None
-    last_name: Optional[str] = None
