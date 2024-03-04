@@ -56,3 +56,22 @@ async def remove_site(deployment_id: Union[str, int],
         return response
     except Exception as e:
         raise e
+
+
+@router.get("/my_deployments")
+async def list_deployments(
+        user: Dict[str, str] = Depends(get_current_user),
+        db: Session = Depends(get_db)
+):
+    """
+    Endpoint to list all deployment.
+
+    Args:
+        user (Dict[str, str]): Current user information.
+        db (Session): SQLAlchemy database session.
+
+    Returns:
+        List: List of deployments under the logged user.
+    """
+    operation = CloudOperations(db=db, user=user)
+    return operation.list_deployments()

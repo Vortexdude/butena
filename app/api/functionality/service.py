@@ -1,3 +1,4 @@
+from typing import List
 from git import Repo
 import os
 from sqlalchemy.orm import Session
@@ -6,7 +7,6 @@ from app.core.utils import FileOperations
 from app.core.db.models import Deployment
 from app.exceptions import DatabaseException, StatusCode, FileException
 from .s3_operation import BaseS3Operation
-from typing import Union
 
 DEPLOYMENT_KEY_FORMAT = "website/{user_name}/{deployment}"
 BUCKET_NAME = conf.BUCKET_NAME
@@ -71,18 +71,18 @@ class DatabaseOperation(BaseS3Operation):
 
         raise DatabaseException(status_code=StatusCode.NOTFOUND_404)
 
-    def find_by_id(self, id: str) -> Union[Deployment, None]:
+    def find_by_user_id(self, user_id: str) -> List:
         """
-        Find a deployment record by ID.
+        Find a deployment record by User ID.
 
         Args:
-            id (str): Deployment ID.
+            user_id (str): Deployment ID.
 
         Returns:
-            Deployment: The deployment record.
+            Deployments (List): The deployment record.
         """
 
-        return self.db.query(Deployment).filter_by(id=id).first()
+        return self.db.query(Deployment).filter_by(user_id=user_id).all()
 
 
 class CloudOperations(DatabaseOperation):
@@ -156,6 +156,10 @@ class CloudOperations(DatabaseOperation):
         Returns:
             dict: Result of the deployment deletion.
         """
+        _all_deployments = self.find_by_user_id(user_id=self.user_id)
+
+        if deployment_id not in _all_deployments:
+            raise DatabaseException(StatusCode.NOTFOUND_404)
 
         response = self.delete(id=deployment_id, user_id=self.user_id)
         if not response:
@@ -170,3 +174,24 @@ class CloudOperations(DatabaseOperation):
             self.delete_file(bucket=BUCKET_NAME, key=file)
 
         return {"Status": f"Deployment {deployment_id} Deleted Successfully!"}
+
+    def list_deployments(self) -> list | dict:
+        """
+        list all deployment.
+
+        Returns:
+            dict: Result of the deployment list.
+        """
+        _data = []
+        deployments = self.find_by_user_id(user_id=self.user_id)
+        if not deployments:
+            return {"Status": "No deployment found under the user"}
+
+        for item in deployments:
+
+            key = DEPLOYMENT_KEY_FORMAT.format(user_name=self.user_name, deployment=item.id)
+            files = self.list_files(bucket_name=BUCKET_NAME, key=key)
+            item.files = files
+            _data.append(item)
+
+        return _data
