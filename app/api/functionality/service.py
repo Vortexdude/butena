@@ -104,7 +104,6 @@ class CloudOperations(DatabaseOperation):
         self.user_name = user['user_name']
         self.user_id = user['user_id']
         self.bucket_files = []
-        self.verify()
 
     async def create_deployment(self, github_url, repo_type):
         """
