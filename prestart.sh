@@ -1,7 +1,7 @@
 #! /usr/bin/env bash
 
-# Let the DB start
-#python3 app/pre_start.py
+# export the app directory
+export PYTHONPATH=$PWD
 
 # Run migrations
 alembic upgrade head
