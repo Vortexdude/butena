@@ -6,7 +6,7 @@ Create Date: 2024-03-05 15:20:24.509380
 
 """
 from typing import Sequence, Union
-
+from uuid import uuid4
 from alembic import op
 from app.core.utils import JWT
 from sqlalchemy.orm import Session
@@ -32,7 +32,7 @@ def populate_db(session):
             print(f"Skipping {email} sponsor because it already exists.")
             continue
         params = data.copy()
-        params['user_id'] = int(100)
+        params['user_id'] = str(uuid4())
         params['hashed_password'] = JWT.get_password_hash(params['password'])
         params.pop('password')
 
