@@ -1,0 +1,24 @@
+version: "3.3"
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    depends_on:
+      - db
+    ports:
+      - "127.0.0.1:8000:8000"
+  db:
+    image: postgres:15-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    expose:
+      - 5432
+    environment:
+      - POSTGRES_USER=butena
+      - POSTGRES_PASSWORD=butena
+      - POSTGRES_DB=butena
+volumes:
+  postgres_data:
