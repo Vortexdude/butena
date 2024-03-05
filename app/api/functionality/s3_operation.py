@@ -1,3 +1,5 @@
+import sys
+
 from botocore.exceptions import ClientError
 import boto3
 from typing import List
@@ -90,4 +92,13 @@ class BaseS3Operation:
             return True
 
         except ClientError as e:
+            raise e
+
+    @staticmethod
+    def verify():
+        sts = boto3.client('sts')
+        try:
+            sts.get_caller_identity()
+            sys.exit()
+        except boto3.exceptions.ClientError as e:
             raise e
