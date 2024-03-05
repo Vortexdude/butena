@@ -1,8 +1,7 @@
-import sys
-
-from botocore.exceptions import ClientError
+from botocore.exceptions import NoCredentialsError, ClientError
 import boto3
 from typing import List
+from app.exceptions import AWSExceptions
 
 
 class BaseS3Operation:
@@ -60,7 +59,7 @@ class BaseS3Operation:
             with open(file_name, 'rb') as f:
                 contents = f.read()
 
-            response = self.client.put_object(
+            self.client.put_object(
                 Body=bytes(contents),
                 Bucket=bucket,
                 Key=key,
@@ -94,11 +93,18 @@ class BaseS3Operation:
         except ClientError as e:
             raise e
 
+
+class AWSVerify:
     @staticmethod
     def verify():
         sts = boto3.client('sts')
         try:
             sts.get_caller_identity()
-            sys.exit()
-        except boto3.exceptions.ClientError as e:
-            raise e
+            return True
+        except NoCredentialsError:
+            return False
+
+
+def aws_dependency():
+    if not AWSVerify.verify():
+        raise AWSExceptions(status_code=500)
