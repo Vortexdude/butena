@@ -6,10 +6,16 @@ services:
       dockerfile: Dockerfile
     env_file:
       - .env
+    environment:
+      SERVER_RELOAD: false
+      POSTGRES_HOST: db
+      JWT_SECRET_KEY: nothing_special
+      JWT_REFRESH_SECRET_KEY: very_special
     depends_on:
       - db
     ports:
-      - "127.0.0.1:8000:8000"
+      - "8000:8000"
+
   db:
     image: postgres:15-alpine
     volumes:

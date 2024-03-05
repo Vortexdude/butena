@@ -19,6 +19,4 @@ COPY ./prestart.sh /app/
 COPY ./app /app/app
 COPY ./alembic /app/alembic
 
-COPY ./env-sample /app/.env
-
 CMD ["bash", "prestart.sh"]
