@@ -1,16 +1,12 @@
 version: "3.3"
 services:
   web:
+    container_name: butena_api
     build:
       context: .
       dockerfile: Dockerfile
     env_file:
       - .env
-    environment:
-      SERVER_RELOAD: false
-      POSTGRES_HOST: db
-      JWT_SECRET_KEY: nothing_special
-      JWT_REFRESH_SECRET_KEY: very_special
     depends_on:
       - db
     ports:
@@ -18,6 +14,7 @@ services:
 
   db:
     image: postgres:15-alpine
+    container_name: postgres_db
     volumes:
       - postgres_data:/var/lib/postgresql/data/
     expose:
