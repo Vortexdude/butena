@@ -7,6 +7,8 @@ from enum import IntEnum
 class StatusCode(IntEnum):
     OK_200 = 200
     CREATED_201 = 201
+    ALREADY_202 = 202
+    NOT_FOUND_204 = 204
     BAD_REQUEST_400 = 400
     UNAUTHORIZED_401 = 401
     FORBIDDEN_403 = 403
@@ -36,6 +38,8 @@ class UserException(HTTPException):
             self.detail = "User already present in the database"
         if status_code == 404:
             self.detail = "Incorrect email or password"
+        if status_code == 400:
+            self.detail = "User is not present in the database"
 
 
 class DatabaseException(HTTPException):
@@ -48,6 +52,10 @@ class DatabaseException(HTTPException):
             self.detail = "Deployment not found"
         if self.status_code == 403:
             self.detail = "No file found in the s3"
+        if self.status_code == 204:
+            self.detail = "No record found"
+        if self.status_code == 202:
+            self.detail = "Record already exists"
 
 
 class FileException(HTTPException):
