@@ -1,13 +1,14 @@
 """create superuser
 
-Revision ID: b9a9a518d6ae
-Revises: 29d55cea1d9e
-Create Date: 2024-03-05 15:20:24.509380
+Revision ID: 8cdfa5eefcac
+Revises: bac8b59ea9f3
+Create Date: 2024-03-06 17:50:25.976658
 
 """
 from typing import Sequence, Union
-from uuid import uuid4
+
 from alembic import op
+from uuid import uuid4
 from app.core.utils import JWT
 from sqlalchemy.orm import Session
 from app.core.db.models import User
@@ -22,6 +23,12 @@ SUPER_USERS = [
         super_user=True
     ),
 ]
+
+# revision identifiers, used by Alembic.
+revision: str = '8cdfa5eefcac'
+down_revision: Union[str, None] = 'bac8b59ea9f3'
+branch_labels: Union[str, Sequence[str], None] = None
+depends_on: Union[str, Sequence[str], None] = None
 
 
 def populate_db(session):
@@ -45,13 +52,6 @@ def populate_db(session):
             session.rollback()
             print(f"Error while creating {data['user_name']} user:")
             print(f"\t{e}")
-
-
-# revision identifiers, used by Alembic.
-revision: str = 'b9a9a518d6ae'
-down_revision: Union[str, None] = '29d55cea1d9e'
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade():
