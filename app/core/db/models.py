@@ -38,3 +38,22 @@ class Deployment(Base):
 
     def __repr__(self):
         return f"Deployment id {self.id}"
+
+
+class Department(Base):
+    __tablename__ = 'departments'
+
+    id: Mapped[int] = mapped_column(primary_key=True, unique=True)
+    name: Mapped[str] = mapped_column(String(40))
+    employees: Mapped[list["Employee"]] = relationship("Employee", back_populates="department")
+
+
+class Employee(Base):
+    __tablename__ = 'employees'
+
+    id: Mapped[int] = mapped_column(primary_key=True, unique=True)
+    name: Mapped[str] = mapped_column(String(40))
+    email: Mapped[str] = mapped_column(String(40))
+    department_id: Mapped[int] = mapped_column(ForeignKey("departments.id"))
+    department: Mapped[str] = relationship("Department", back_populates="employees")
+    hire_date: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
