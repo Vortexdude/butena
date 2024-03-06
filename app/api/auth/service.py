@@ -93,3 +93,6 @@ class UserService:
         user = session.query(User).filter_by(user_id=id).first()
         session.close()
         return user
+
+    async def get_all_users(self):
+        return self.db.query(User).all()
