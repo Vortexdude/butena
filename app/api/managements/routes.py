@@ -7,14 +7,27 @@ from app.core.db.engine import get_db
 
 router = APIRouter()
 
+ENDPOINTS = {
+    "department": {
+        "get": {
+            "path": "/departments",
+            "summary": "Get all the departments",
+        },
+        "create": {
+            "path": "/create_department",
+            "summary": "Create the department"
+        },
+    },
+}
 
-@router.get("/departments", response_model=Department)
+
+@router.get("/departments", summary="Get all the departments")
 async def get_department(db: Session = Depends(get_db)):
     dp = DepartmentServices(db)
-    return dp.get_all()
+    return dp.get_all_departments()
 
 
-@router.post("/create_department")
+@router.post("/create_department", summary="Create the department")
 async def create_department(data: DepartmentCreate, db: Session = Depends(get_db)):
     data = data.dict()
     dp = DepartmentServices(db)
@@ -22,25 +35,26 @@ async def create_department(data: DepartmentCreate, db: Session = Depends(get_db
     return {"Status": "Created"}
 
 
-@router.get("/")
-async def get_employee():
-    return {"Employees": []}
+@router.get("/employee", summary="Get all the employees")
+async def get_employee(db: Session = Depends(get_db)):
+    dp = EmployeeServices(db)
+    return dp.get_all_employee()
 
 
-@router.post("/on_board_employee", response_model=Employee)
+@router.post("/on_board_employee", summary="Onboard employee", response_model=Employee)
 async def onboard_employee(data: EmployeeCreate, db: Session = Depends(get_db)):
     emp = EmployeeServices(db)
-    return emp.create(data.dict())
+    return emp.create_record(data.dict())
 
 
-@router.delete("/off_board_employee")
+@router.delete("/off_board_employee", summary="Offboard employee")
 async def off_board_employee(data: EmployeeCreate, db: Session = Depends(get_db)):
     data = data.dict()
     emp = EmployeeServices(db)
-    return emp.delete(**data)
+    return emp.delete_record(**data)
 
 
-@router.post("/update_employee")
+@router.post("/update_employee", summary="Update the employee details")
 async def update_employee(data: EmployeeCreate, db: Session = Depends(get_db)):
     data = data.dict()
     emp = EmployeeServices(db)

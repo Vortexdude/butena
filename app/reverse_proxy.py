@@ -34,12 +34,14 @@ async def proxy_request(request: Request):
         headers={"Content-Type": response['ContentType']},
     )
 
+
 @app.middleware("http")
 async def proxy_middleware(request: Request, call_next):
     try:
         return await proxy_request(request)
     except HTTPException as exc:
         return exc
+
 
 if __name__ == "__main__":
     uvicorn.run(app, host="127.0.0.1", port=9000)
