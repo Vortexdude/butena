@@ -11,11 +11,12 @@ router = APIRouter()
 
 
 @router.get("/", summary="Root endpoint")
-async def root():
+async def root(db: Session = Depends(get_db), data=Depends(get_current_user)):
     """
     Example root endpoint
     """
-    return {"User": "Nitin"}
+    user_service = UserService(db=db)
+    return await user_service.get_all_users()
 
 
 #  response_model=UserOut
