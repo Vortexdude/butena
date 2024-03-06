@@ -7,19 +7,6 @@ from app.core.db.engine import get_db
 
 router = APIRouter()
 
-ENDPOINTS = {
-    "department": {
-        "get": {
-            "path": "/departments",
-            "summary": "Get all the departments",
-        },
-        "create": {
-            "path": "/create_department",
-            "summary": "Create the department"
-        },
-    },
-}
-
 
 @router.get("/departments", summary="Get all the departments")
 async def get_department(db: Session = Depends(get_db)):
