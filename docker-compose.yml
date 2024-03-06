@@ -5,8 +5,29 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    env_file:
-      - .env
+    environment:
+      - ALGORITHM=${ALGORITHM}
+      - API_ENV=${API_ENV}
+      - API_HOST=${API_HOST}
+      - API_PORT=${API_PORT}
+      - API_TITLE=${API_TITLE}
+      - API_VERSION=${API_VERSION}
+      - BUCKET_NAME=${BUCKET_NAME}
+      - BUCKET_ZONE=${BUCKET_ZONE}
+      - DESCRIPTION=${DESCRIPTION}
+      - DOC_URL=${DOC_URL}
+      - JWT_REFRESH_SECRET_KEY=${JWT_REFRESH_SECRET_KEY}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - POSTGRES_DB=butena
+      - POSTGRES_HOST=db
+      - POSTGRES_PASSWORD=butena
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=butena
+      - REDOC_URL=${REDOC_URL}
+      - SERVER_RELOAD=${SERVER_RELOAD}
+      - TEMP_DIR=${TEMP_DIR}
+      - WORKER_COUNT=${WORKER_COUNT}
+
     depends_on:
       - db
     ports:
