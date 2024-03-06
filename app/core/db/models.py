@@ -21,6 +21,7 @@ class User(Base):
     user_name: Mapped[Optional[str]]
     hashed_password: Mapped[str] = mapped_column(String(256))
     enabled: Mapped[Optional[bool]] = False
+    super_user: Mapped[Optional[bool]] = False
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     def __repr__(self) -> str:

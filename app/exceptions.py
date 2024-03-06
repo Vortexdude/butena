@@ -58,6 +58,14 @@ class FileException(HTTPException):
             self.detail = "No index file found in the repo!"
 
 
+class AWSExceptions(HTTPException):
+    def __init__(self, status_code=None, detail=None):
+        self.status_code = status_code
+        self.detail = detail
+        if self.status_code == 500:
+            self.detail = "Failed to verify AWS credentials"
+
+
 def init_exceptions(app: FastAPI):
     @app.exception_handler(UserException)
     async def user_exception_handler(request: Request, exc: UserException):
@@ -83,6 +91,13 @@ def init_exceptions(app: FastAPI):
 
     @app.exception_handler(FileException)
     async def file_exception_handler(request: Request, exc: FileException):
+        return JSONResponse(
+            status_code=exc.status_code,
+            content=exc.detail
+        )
+
+    @app.exception_handler(AWSExceptions)
+    async def aws_creds_verify_handler(request: Request, exc: AWSExceptions):
         return JSONResponse(
             status_code=exc.status_code,
             content=exc.detail

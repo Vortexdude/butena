@@ -34,7 +34,6 @@ async def get_current_user(token: str = Depends(reusable_oauth)) -> dict:
         # Decode JWT token and validate its payload
         payload = jwt.decode(token, conf.JWT_SECRET_KEY, algorithms=[conf.ALGORITHM])
         token_data = TokenPayload(**payload)
-
         # Check if the token is expired
         if datetime.fromtimestamp(token_data.exp) < datetime.now():
             raise JWTException(status_code=StatusCode.UNAUTHORIZED_401)

@@ -116,7 +116,6 @@ class CloudOperations(DatabaseOperation):
         Returns:
             dict: Result of the deployment creation.
         """
-
         deployment_id = DatabaseOperation(self.db).add(self.user_id)
 
         if not deployment_id:
@@ -156,12 +155,16 @@ class CloudOperations(DatabaseOperation):
         Returns:
             dict: Result of the deployment deletion.
         """
-        _all_deployments = self.find_by_user_id(user_id=self.user_id)
+        _all_deployments = self.list_deployments()  # fetch all the deployment under a user
+        if 'Status' in _all_deployments:  # check any deployment are there or not
+            return _all_deployments
 
-        if deployment_id not in _all_deployments:
+        _all_deployments_id = [item.id for item in _all_deployments]  # fetch the ids of the deployments
+
+        if int(deployment_id) not in _all_deployments_id:  # check the deployment already exist or not
             raise DatabaseException(StatusCode.NOTFOUND_404)
 
-        response = self.delete(id=deployment_id, user_id=self.user_id)
+        response = self.delete(id=deployment_id, user_id=self.user_id)  # delete the deployment from database
         if not response:
             pass
         key = DEPLOYMENT_KEY_FORMAT.format(user_name=self.user_name, deployment=deployment_id)
