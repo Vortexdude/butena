@@ -8,7 +8,7 @@ class EnvConfig:
         load_dotenv(verbose=True)
 
     @staticmethod
-    def _get_env(key, default):
+    def _get_env(key, default=None):
         return os.getenv(key, default)
 
     @property
@@ -65,7 +65,7 @@ class EnvConfig:
 
     @property
     def postgres_username(self) -> str:
-        return self._get_env("POSTGRES_USER", 'butena')
+        return self._get_env("POSTGRES_USER")
 
     @property
     def postgres_password(self) -> str:
@@ -81,7 +81,12 @@ class EnvConfig:
             "db": self.postgres_database,
         }
         if not POSTGRES['user']:
-            return self._get_env("SQLALCHEMY_DATABASE_URI", "sqlite:///data.db")
+            current_path = os.getcwd()
+            filename = f"../{self.api_title.lower()}_{self.api_env.lower()}.db"
+            database_file = os.path.join(current_path, filename)
+            sqlite_file_path = "sqlite:///" + database_file
+
+            return self._get_env("SQLALCHEMY_DATABASE_URI", sqlite_file_path)
         return "postgresql+psycopg2://%(user)s:%(pw)s@%(host)s:%(port)s/%(db)s" % POSTGRES
 
     @property
